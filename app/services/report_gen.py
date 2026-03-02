@@ -189,15 +189,40 @@ def generate_pdf_report(servers_data: list, report_date: str, fonts_dir: str) ->
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.pdfbase.cidfonts import UnicodeCIDFont
     from io import BytesIO
 
-    # 注册中文字体
-    font_path = os.path.join(fonts_dir, 'SimHei.ttf')
-    if os.path.exists(font_path):
-        pdfmetrics.registerFont(TTFont('SimHei', font_path))
-        font_name = 'SimHei'
-    else:
-        font_name = 'Helvetica'
+    # 注册中文字体：
+    # 1) 优先使用 ReportLab 内置 CID 中文字体（最稳，不依赖本地 TTF/OTF 兼容）
+    # 2) 再回退到本地字体文件
+    font_name = 'Helvetica'
+    try:
+        pdfmetrics.registerFont(UnicodeCIDFont('STSong-Light'))
+        font_name = 'STSong-Light'
+    except Exception:
+        pass
+
+    if font_name == 'Helvetica':
+        # 回退：注册本地中文字体（按候选列表自动匹配）
+        # 注意：TTFont 对部分 OTF(CFF) 不兼容，因此保留 CID 作为主方案
+        font_candidates = [
+            ('SimHei', 'SimHei.ttf'),
+            ('NotoSansSC', 'NotoSansSC-Regular.ttf'),
+            ('SourceHanSansSC', 'SourceHanSansSC-Regular.ttf'),
+            ('NotoSansSC', 'NotoSansSC-Regular.otf'),
+            ('SourceHanSansSC', 'SourceHanSansSC-Regular.otf'),
+            ('SourceHanSansCN', 'SourceHanSansCN-Regular.otf'),
+        ]
+        for alias, filename in font_candidates:
+            path = os.path.join(fonts_dir, filename)
+            if not os.path.exists(path):
+                continue
+            try:
+                pdfmetrics.registerFont(TTFont(alias, path))
+                font_name = alias
+                break
+            except Exception:
+                continue
 
     buf = BytesIO()
     doc = SimpleDocTemplate(buf, pagesize=landscape(A4),
