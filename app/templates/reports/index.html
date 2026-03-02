@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}报告导出{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-file-earmark-bar-graph me-2 text-primary"></i>巡检报告导出</h4>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-2 align-items-center">
+            <div class="col-lg-8">
+                <label class="form-label fw-semibold">指定巡检记录（不选则导出最新结果汇总）</label>
+                <select name="record_id" class="form-select">
+                    <option value="0">最新巡检汇总（默认）</option>
+                    {% for r in recent_records %}
+                    <option value="{{ r.id }}" {{ 'selected' if selected_record_id==r.id }}>
+                        #{{ r.id }} · {{ r.server.name }} ({{ r.server.ip }}) · {{ r.inspected_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-lg-4 d-grid align-self-end">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-funnel me-1"></i>应用记录选择
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4 justify-content-center">
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100 text-center border-0" style="border-top:4px solid #1a56db !important">
+            <div class="card-body p-4">
+                <div class="mb-3"><i class="bi bi-filetype-html text-primary" style="font-size:3rem"></i></div>
+                <h5 class="fw-bold">HTML 报告</h5>
+                <p class="text-muted small">独立的 HTML 页面，可在浏览器直接打开查看，样式精美，方便分享。</p>
+                <a href="{{ url_for('reports.export_html', record_id=selected_record_id) }}" class="btn btn-primary w-100">
+                    <i class="bi bi-download me-2"></i>下载 HTML 报告
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100 text-center border-0" style="border-top:4px solid #166534 !important">
+            <div class="card-body p-4">
+                <div class="mb-3"><i class="bi bi-file-earmark-word text-success" style="font-size:3rem"></i></div>
+                <h5 class="fw-bold">Word 报告</h5>
+                <p class="text-muted small">Microsoft Word 格式 (.docx)，可编辑修改，适合存档和向领导汇报。</p>
+                <a href="{{ url_for('reports.export_word', record_id=selected_record_id) }}" class="btn btn-success w-100">
+                    <i class="bi bi-download me-2"></i>下载 Word 报告
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100 text-center border-0" style="border-top:4px solid #dc2626 !important">
+            <div class="card-body p-4">
+                <div class="mb-3"><i class="bi bi-file-earmark-pdf text-danger" style="font-size:3rem"></i></div>
+                <h5 class="fw-bold">PDF 报告</h5>
+                <p class="text-muted small">PDF 格式，格式固定，适合打印和正式存档，内嵌中文字体无需安装。</p>
+                <a href="{{ url_for('reports.export_pdf', record_id=selected_record_id) }}" class="btn btn-danger w-100">
+                    <i class="bi bi-download me-2"></i>下载 PDF 报告
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info mt-4">
+    <i class="bi bi-info-circle me-2"></i>
+    {% if selected_record_id %}
+    当前将导出<strong>指定巡检记录 #{{ selected_record_id }}</strong>。
+    {% else %}
+    报告内容基于<strong>各服务器最新一次巡检结果</strong>生成，涵盖所有启用的服务器。
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}{{ '新建' if action=='add' else '编辑' }}用户{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0"><i
+                        class="bi bi-person-{{ 'plus' if action=='add' else 'gear' }} me-2 text-primary"></i>{{ '新建用户'
+                    if action=='add' else '编辑用户：' + user.username }}</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    {% if action == 'add' %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">用户名 <span class="text-danger">*</span></label>
+                        <input type="text" name="username" class="form-control" required placeholder="仅支持字母数字和下划线">
+                    </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">显示名称</label>
+                        <input type="text" name="display_name" class="form-control"
+                            value="{{ user.display_name if user else '' }}" placeholder="如：张三">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">角色</label>
+                        <select name="role" class="form-select">
+                            <option value="viewer" {{ 'selected' if not user or user.role=='viewer' }}>查看者（只读）</option>
+                            <option value="admin" {{ 'selected' if user and user.role=='admin' }}>管理员（全部权限）</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">密码
+                            {% if action=='edit' %}<small class="text-muted fw-normal">（留空不修改）</small>{% else %}<span
+                                class="text-danger">*</span>{% endif %}
+                        </label>
+                        <input type="password" name="password" class="form-control" {{ 'required' if action=='add'
+                            else '' }} placeholder="{{ '至少6位' if action=='add' else '留空则不更改密码' }}">
+                    </div>
+                    {% if action == 'edit' %}
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_active" id="isActive" {{ 'checked'
+                                if user.is_active }}>
+                            <label class="form-check-label" for="isActive">账户启用</label>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>保存</button>
+                        <a href="{{ url_for('users.index') }}" class="btn btn-outline-secondary">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% block title %}巡检详情 - {{ server.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-clipboard-data me-2 text-primary"></i>巡检详情</h4>
+        <small class="text-muted">{{ server.name }} ({{ server.ip }}) · {{ record.inspected_at.strftime('%Y-%m-%d
+            %H:%M:%S') }}</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('inspections.server_history', server_id=server.id) }}"
+            class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-clock-history me-1"></i>历史记录
+        </a>
+        <a href="{{ url_for('inspections.index') }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-arrow-left me-1"></i>返回列表
+        </a>
+        {% if current_user.is_admin %}
+        <form method="POST" action="{{ url_for('inspections.delete', record_id=record.id) }}" class="d-inline"
+            onsubmit="return confirm('确认删除该巡检记录？关联告警也将同步删除，且不可恢复。');">
+            <button type="submit" class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-trash me-1"></i>删除记录
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 状态概览 -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm text-center p-3">
+            <div class="text-muted small mb-1">巡检状态</div>
+            <span class="badge bg-{{ record.status_color }} fs-6 px-3">{{ record.status_label }}</span>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm text-center p-3">
+            <div class="text-muted small mb-1">CPU 使用率</div>
+            <div
+                class="fs-4 fw-bold text-{{ 'danger' if record.cpu_usage>95 else 'warning' if record.cpu_usage>80 else 'success' }}">
+                {{ "%.1f"|format(record.cpu_usage) }}%
+            </div>
+            <div class="progress mt-2" style="height:6px">
+                <div class="progress-bar bg-{{ 'danger' if record.cpu_usage>95 else 'warning' if record.cpu_usage>80 else 'success' }}"
+                    style="width:{{ record.cpu_usage }}%"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm text-center p-3">
+            <div class="text-muted small mb-1">内存使用率</div>
+            <div
+                class="fs-4 fw-bold text-{{ 'danger' if record.mem_usage>95 else 'warning' if record.mem_usage>85 else 'success' }}">
+                {{ "%.1f"|format(record.mem_usage) }}%
+            </div>
+            <div class="progress mt-2" style="height:6px">
+                <div class="progress-bar bg-{{ 'danger' if record.mem_usage>95 else 'warning' if record.mem_usage>85 else 'success' }}"
+                    style="width:{{ record.mem_usage }}%"></div>
+            </div>
+            <small class="text-muted">{{ "%.0f"|format(record.mem_used) }}MB / {{ "%.0f"|format(record.mem_total)
+                }}MB</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm text-center p-3">
+            <div class="text-muted small mb-1">运行时长</div>
+            <div class="small fw-bold">{{ record.uptime or 'N/A' }}</div>
+            {% if record.load_avg %}
+            <div class="text-muted small mt-1">负载: {{ record.load_avg }}</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- 磁盘信息 -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0"><i class="bi bi-hdd me-2 text-warning"></i>磁盘使用情况</h6>
+            </div>
+            <div class="card-body">
+                {% if record.disk_list %}
+                {% for disk in record.disk_list %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span><code>{{ disk.mount }}</code> ({{ disk.device }})</span>
+                        <span
+                            class="fw-semibold text-{{ 'danger' if disk.usage_pct>95 else 'warning' if disk.usage_pct>80 else 'success' }}">{{
+                            disk.usage_pct }}%</span>
+                    </div>
+                    <div class="progress" style="height:10px">
+                        <div class="progress-bar bg-{{ 'danger' if disk.usage_pct>95 else 'warning' if disk.usage_pct>80 else 'success' }}"
+                            style="width:{{ disk.usage_pct }}%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted" style="font-size:.75rem">
+                        <span>已用: {{ disk.used }}</span>
+                        <span>总计: {{ disk.size }}</span>
+                        <span>可用: {{ disk.avail }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-muted mb-0">无磁盘数据</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 监听端口 -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0"><i class="bi bi-router me-2 text-info"></i>监听端口</h6>
+            </div>
+            <div class="card-body">
+                {% if record.ports_list %}
+                <div class="d-flex flex-wrap gap-2">
+                    {% for p in record.ports_list %}
+                    <span class="badge bg-light text-dark border">{{ p.port }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">无端口数据</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 异常服务 -->
+    {% if record.services_list %}
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-warning">
+            <div class="card-header bg-warning bg-opacity-10 py-3">
+                <h6 class="mb-0 text-warning"><i class="bi bi-exclamation-triangle me-2"></i>异常服务 ({{
+                    record.services_list|length }})</h6>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>服务名称</th>
+                            <th>状态</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for svc in record.services_list %}
+                        <tr>
+                            <td><code>{{ svc.name }}</code></td>
+                            <td><span class="badge bg-danger">{{ svc.sub or svc.status }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Top 进程 -->
+    <div class="col-{{ '6' if record.services_list else '12' }}">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0"><i class="bi bi-cpu me-2 text-primary"></i>CPU 占用进程 Top 10</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>用户</th>
+                            <th>PID</th>
+                            <th>CPU%</th>
+                            <th>内存%</th>
+                            <th>命令</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for proc in record.processes_list %}
+                        <tr>
+                            <td><small>{{ proc.user }}</small></td>
+                            <td><small>{{ proc.pid }}</small></td>
+                            <td><small
+                                    class="text-{{ 'danger' if proc.cpu|float > 50 else 'warning' if proc.cpu|float > 20 else '' }}">{{
+                                    proc.cpu }}%</small></td>
+                            <td><small>{{ proc.mem }}</small></td>
+                            <td><small class="text-truncate d-inline-block" style="max-width:300px"
+                                    title="{{ proc.cmd }}">{{ proc.cmd }}</small></td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-muted text-center">无进程数据</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% if record.error_message %}
+    <div class="col-12">
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-octagon me-2"></i>
+            <strong>错误信息：</strong>{{ record.error_message }}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

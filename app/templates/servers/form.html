@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}{{ '添加' if action=='add' else '编辑' }}服务器{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0">
+                    <i class="bi bi-{{ 'plus-circle' if action=='add' else 'pencil-square' }} me-2 text-primary"></i>
+                    {{ '添加服务器' if action=='add' else '编辑服务器：' + server.name }}
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">服务器名称 <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control" required
+                                value="{{ server.name if server else '' }}" placeholder="如：Web-服务器-01">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">IP 地址 <span class="text-danger">*</span></label>
+                            <input type="text" name="ip" class="form-control" required
+                                value="{{ server.ip if server else '' }}" placeholder="192.168.1.100">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">系统类型 <span class="text-danger">*</span></label>
+                            <select name="os_type" class="form-select">
+                                <option value="linux" {{ 'selected' if not server or server.os_type=='linux' }}>🐧 Linux
+                                </option>
+                                <option value="windows" {{ 'selected' if server and server.os_type=='windows' }}>🪟
+                                    Windows</option>
+                                <option value="macos" {{ 'selected' if server and server.os_type=='macos' }}>🍎
+                                    macOS</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" id="portLabel">连接端口</label>
+                            <input type="number" name="ssh_port" class="form-control"
+                                id="portInput"
+                                value="{{ server.ssh_port if server else 22 }}" min="1" max="65535">
+                            <div class="form-text" id="portHelp">Linux/macOS 默认 SSH 22；Windows 默认 WinRM 5985</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">分组</label>
+                            <input type="text" name="group" class="form-control"
+                                value="{{ server.group if server else '' }}" placeholder="如：核心机房">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">用户名 <span class="text-danger">*</span></label>
+                            <input type="text" name="username" class="form-control" required id="usernameInput"
+                                value="{{ server.username if server else '' }}" placeholder="root">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">密码
+                                {% if action == 'edit' %}<small class="text-muted fw-normal">（留空则不修改）</small>{% else
+                                %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            <input type="password" name="password" class="form-control"
+                                placeholder="{{ '留空则不更新密码' if action=='edit' else '请输入SSH密码' }}" {{ 'required' if
+                                action=='add' else '' }}>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">备注说明</label>
+                            <input type="text" name="description" class="form-control"
+                                value="{{ server.description if server else '' }}" placeholder="可选，如：核心业务数据库服务器">
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="enabled" id="enabledSwitch"
+                                    {{ 'checked' if not server or server.enabled }}>
+                                <label class="form-check-label" for="enabledSwitch">启用（参与自动巡检）</label>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="my-4">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>{{ '添加' if action=='add' else '保存修改' }}
+                        </button>
+                        <a href="{{ url_for('servers.index') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>返回
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        const osSelect = document.querySelector('select[name="os_type"]');
+        const portInput = document.getElementById('portInput');
+        const usernameInput = document.getElementById('usernameInput');
+        const portLabel = document.getElementById('portLabel');
+        const portHelp = document.getElementById('portHelp');
+        if (!osSelect || !portInput || !usernameInput || !portLabel) return;
+
+        function syncByOs() {
+            const osType = osSelect.value;
+            if (osType === 'windows') {
+                portLabel.textContent = 'WinRM 端口';
+                if (portHelp) portHelp.textContent = 'Windows 巡检使用 WinRM（常见 5985/5986，非远程桌面 3389）';
+                if (!portInput.value || Number(portInput.value) === 22) portInput.value = 5985;
+                if (!usernameInput.value) usernameInput.value = 'Administrator';
+                usernameInput.placeholder = 'Administrator';
+            } else {
+                portLabel.textContent = 'SSH 端口';
+                if (portHelp) portHelp.textContent = 'Linux/macOS 巡检使用 SSH（默认 22）';
+                if (!portInput.value || Number(portInput.value) === 5985) portInput.value = 22;
+                if (usernameInput.placeholder === 'Administrator' && !usernameInput.value) {
+                    usernameInput.value = '';
+                }
+                usernameInput.placeholder = 'root';
+            }
+        }
+
+        osSelect.addEventListener('change', syncByOs);
+        syncByOs();
+    })();
+</script>
+{% endblock %}

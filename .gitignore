@@ -1,0 +1,32 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.venv/
+
+# Test / lint cache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Runtime data
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+logs/
+*.log
+*.pid
+
+# Upload / export artifacts
+uploads/*
+!uploads/.gitkeep
+exports/*
+!exports/.gitkeep
+
+# macOS
+.DS_Store
+

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}登录{% endblock %}
+
+{% block auth_content %}
+<div class="login-page">
+    <div class="login-card">
+        <div class="login-logo">
+            <i class="bi bi-hospital-fill"></i>
+        </div>
+        <h4 class="login-title">医院IT服务器巡检平台</h4>
+        <p class="login-subtitle">IT自动化运维系统</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} py-2 text-sm">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">用户名</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                    <input type="text" name="username" class="form-control" placeholder="请输入用户名" required autofocus>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">密码</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input type="password" name="password" class="form-control" placeholder="请输入密码" required>
+                </div>
+            </div>
+            <div class="mb-4 d-flex align-items-center justify-content-between">
+                <div class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" name="remember" id="remember">
+                    <label class="form-check-label" for="remember">记住登录状态</label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 btn-login">
+                <i class="bi bi-box-arrow-in-right me-2"></i>登录
+            </button>
+        </form>
+        <div class="login-footer">系统仅供内部使用 &copy; 医院信息科</div>
+    </div>
+</div>
+{% endblock %}
