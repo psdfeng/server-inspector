@@ -8,7 +8,7 @@
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_USER="inspector"
-APP_PORT=5001
+APP_PORT=8003
 VENV_DIR="$SCRIPT_DIR/venv"
 SERVICE_NAME="server-inspector"
 

@@ -16,21 +16,21 @@ python3 -m venv venv
 ## 3. 启动（前台长会话）
 
 ```bash
-PORT=5001 ./venv/bin/python run.py
+PORT=8003 ./venv/bin/python run.py
 ```
 
 ## 4. 核心配置
 
 可通过环境变量覆盖：
 
-- `PORT`：服务端口（默认 5001）
+- `PORT`：服务端口（默认 8003）
 - `SECRET_KEY`：Flask 会话密钥
 - `ENCRYPT_KEY`：服务器密码加密密钥
 
 示例：
 
 ```bash
-SECRET_KEY='your-secret' ENCRYPT_KEY='your-enc-key' PORT=5001 ./venv/bin/python run.py
+SECRET_KEY='your-secret' ENCRYPT_KEY='your-enc-key' PORT=8003 ./venv/bin/python run.py
 ```
 
 ## 5. Windows 巡检前置条件
@@ -43,7 +43,7 @@ SECRET_KEY='your-secret' ENCRYPT_KEY='your-enc-key' PORT=5001 ./venv/bin/python 
 ## 6. 健康检查
 
 ```bash
-curl http://127.0.0.1:5001/healthz
+curl http://127.0.0.1:8003/healthz
 ```
 
 ## 7. 常见问题
@@ -59,4 +59,3 @@ curl http://127.0.0.1:5001/healthz
 - 检查是否启用 WinRM，而不是只开了 RDP
 - 检查 5985/5986 端口连通性
 - 检查账号密码是否正确
-

@@ -36,12 +36,12 @@ python3 -m venv venv
 2. 启动服务（前台长会话）
 
 ```bash
-PORT=5001 ./venv/bin/python run.py
+PORT=8003 ./venv/bin/python run.py
 ```
 
 3. 访问系统
 
-- 登录页：`http://127.0.0.1:5001/auth/login`
+- 登录页：`http://127.0.0.1:8003/auth/login`
 - 默认管理员：
   - 用户名：`admin`
   - 密码：`admin123`
@@ -77,4 +77,3 @@ requirements.txt # 依赖
 ## 生产部署建议
 
 请参考部署文档：[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
-
