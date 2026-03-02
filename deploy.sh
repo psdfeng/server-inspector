@@ -8,7 +8,7 @@
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_USER="inspector"
-APP_PORT=5000
+APP_PORT=5001
 VENV_DIR="$SCRIPT_DIR/venv"
 SERVICE_NAME="server-inspector"
 
@@ -123,6 +123,7 @@ User=root
 WorkingDirectory=${SCRIPT_DIR}
 Environment="PATH=${VENV_DIR}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 Environment="FLASK_ENV=production"
+Environment="PORT=${APP_PORT}"
 ExecStart=${VENV_DIR}/bin/python ${SCRIPT_DIR}/run.py
 Restart=always
 RestartSec=10
